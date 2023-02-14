@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: Magami API
+  version: 1.0.0
+  description: |
+    The Magami API is purposed for helping developers to make use of
+    Magami interface
+servers:
+  - url: https://app.magami.id/api/v1
+    description: Production server
+tags:
+  - name: Microsite
+    description: Anything related for participant/end-user microsite
+paths:
+  /campaigns/{campaignSlug}/claim/{couponCode}:
+    get:
+      summary: Claim Coupon
+      operationId: claim-coupon
+      headers:
+        name: Authorization
+        description: Bearer token
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+        - name: couponCode
+          in: path
+          description: Coupon code to validate
+          required: true
+          schema:
+            type: string
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: string
+                  coupon_code:
+                    type: string
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /campaigns/{campaignSlug}/potential-winner:
+    post:
+      summary: Welcome Screen Form
+      operationId: welcome-screen-form
+      headers:
+        name: Authorization
+        description: Bearer token
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/x-www-form-urlencoded':
+            schema:
+              type: object
+              properties:
+                coupon_code:
+                  description: Coupon code
+                  type: string
+                name: 
+                  description: Full name
+                  type: string
+                phone:
+                  description: Phone
+                  type: string
+                province_id:
+                  description: Province ID
+                  type: integer
+                city_id:
+                  description: City ID
+                  type: integer
+                district_id:
+                  description: District ID
+                  type: integer
+              required:
+                - coupon_code
+                - name
+                - phone
+                - province_id
+                - city_id
+                - district_id
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      coupon_code:
+                        type: string
+                      name: 
+                        type: string
+                      phone:
+                        type: string
+                      province_id:
+                        type: integer
+                      city_id:
+                        type: integer
+                      district_id:
+                        type: integer
+        "302":
+          description: Coupon Already Used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status_code:
+                    type: string
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      name: Authorization
+      in: header
