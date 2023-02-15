@@ -4,21 +4,27 @@ info:
   version: 1.0.0
   description: |
     The Magami API is purposed for helping developers to make use of
-    Magami interface
+    Magami interface.
 servers:
+  - url: https://stg.magami.id/api/v1
+    description: Staging server
   - url: https://app.magami.id/api/v1
     description: Production server
 tags:
   - name: Microsite
-    description: Anything related for participant/end-user microsite
+    description: Anything related to participant/end-user microsite
 paths:
-  /campaigns/{campaignSlug}/claim/{couponCode}:
+  /campaigns/{campaignSlug}/check/{couponCode}:
     get:
       summary: Claim Coupon
       operationId: claim-coupon
       headers:
         name: Authorization
         description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
       parameters:
         - name: campaignSlug
           in: path
@@ -32,12 +38,8 @@ paths:
           required: true
           schema:
             type: string
-      tags:
-        - Microsite
-      security:
-        - apiKey: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -48,28 +50,40 @@ paths:
                     type: boolean
                   message:
                     type: string
-                  status:
-                    type: string
-                  coupon_code:
-                    type: string
-        "500":
+                  data:
+                    type: object
+                    properties:
+                      coupon_code:
+                        type: string
+                      status_code:
+                        type: string
+                      redemption_id:
+                        type: integer
+                      reward_id:
+                        type: integer
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
           description: Error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-  /campaigns/{campaignSlug}/potential-winner:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/welcome/submit:
     post:
-      summary: Welcome Screen Form
-      operationId: welcome-screen-form
+      summary: Welcome Form
+      operationId: welcome-form
       headers:
         name: Authorization
         description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
       parameters:
         - name: campaignSlug
           in: path
@@ -108,12 +122,8 @@ paths:
                 - province_id
                 - city_id
                 - district_id
-      tags:
-        - Microsite
-      security:
-        - apiKey: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -122,6 +132,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  message:
+                    type: string
                   data:
                     type: object
                     properties:
@@ -139,31 +151,404 @@ paths:
                         type: integer
                       district_id:
                         type: integer
-        "302":
-          description: Coupon Already Used
+        '404':
+          description: Not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-                  status_code:
-                    type: string
-        "500":
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
           description: Error
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/redeem/{redemptionId}:
+    get:
+      summary: Redeem
+      operationId: redeem
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+        - name: redemptionId
+          in: path
+          description: Redemption ID, obtained from welcome submit API
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
                   success:
                     type: boolean
                   message:
                     type: string
+                  data:
+                    $ref: '#/components/schemas/Redemption'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/winner/validate:
+    post:
+      summary: Validate Winner
+      operationId: validate-winner
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/x-www-form-urlencoded':
+            schema:
+              type: object
+              properties:
+                coupon_code:
+                  description: Coupon Code
+                  type: string
+                phone: 
+                  description: Email
+                  type: string
+              required:
+                - coupon_code
+                - phone
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Redemption'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/winner/submit:
+    post:
+      summary: Winner Form
+      operationId: winner-form
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/x-www-form-urlencoded':
+            schema:
+              type: object
+              properties:
+                redemption_id:
+                  description: Redemption ID
+                  type: integer
+                  example: 10
+                email: 
+                  description: Email
+                  type: string
+                id_number:
+                  description: ID Number
+                  type: string
+                address:
+                  description: Address
+                  type: string
+              required:
+                - redemption_id
+                - email
+                - id_number
+                - address
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Redemption'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/winner/list:
+    get:
+      summary: Winner List
+      operationId: winner-list
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+        - name: couponCode
+          in: path
+          description: Coupon code to validate
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Redemption'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /campaigns/{campaignSlug}/faq:
+    get:
+      summary: Get FAQ
+      operationId: get-faq
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+      security:
+        - apiKey: []
+      parameters:
+        - name: campaignSlug
+          in: path
+          description: Campaign slug
+          required: true
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Keyword
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagination'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
 components:
+  schemas:
+    Redemption:
+      type: object
+      properties:
+        id:
+          type: integer
+        coupon_code:
+          type: string
+        reward_id:
+          type: integer
+        reward_name:
+          type: string
+        reward_image:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        id_number:
+          type: string
+        province_id:
+          type: integer
+        city_id:
+          type: integer
+        district_id:
+          type: integer
+        address:
+          type: string
+      required:
+        - id
+        - coupon_code
+        - reward_id
+        - name
+        - phone
+        - email
+        - id_number
+        - province_id
+        - city_id
+        - district_id
+        - address
+    FAQ:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaign_id:
+          type: integer
+        category_id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        is_published:
+          type: integer
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        deleted_at:
+          type: string
+        sort_order:
+          type: integer
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        data:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/FAQ'
+        first_page_url:
+          type: string
+        from:
+          type: integer
+        last_page:
+          type: integer
+        last_page_url:
+          type: string
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              label:
+                type: string
+              active:
+                type: boolean
+        next_page_url:
+          type: string
+        path:
+          type: string
+        per_page:
+          type: integer
+        prev_page_url:
+          type: string
+        to:
+          type: integer
+        total:
+          type: integer
+    NotFoundOrErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      xml:
+        name: error-message
   securitySchemes:
     apiKey:
       type: http
