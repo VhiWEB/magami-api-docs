@@ -356,12 +356,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: couponCode
-          in: path
-          description: Coupon code to validate
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: OK
