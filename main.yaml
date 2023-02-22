@@ -6,10 +6,10 @@ info:
     The Magami API is purposed for helping developers to make use of
     Magami interface.
 servers:
-  - url: https://stg.magami.id/api/v1
-    description: Staging server
   - url: https://app.magami.id/api/v1
     description: Production server
+  - url: https://demo.magami.id/api/v1
+    description: Staging server
 tags:
   - name: Microsite
     description: Anything related to participant/end-user microsite
