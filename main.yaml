@@ -10,8 +10,6 @@ servers:
     description: Production server
   - url: https://demo.magami.id/api/v1
     description: Demo server
-  - url: http://bihunku.test/api/v1
-    description: Local server
 tags:
   - name: Microsite
     description: Anything related to participant/end-user microsite
