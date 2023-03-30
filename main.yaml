@@ -9,7 +9,9 @@ servers:
   - url: https://app.magami.id/api/v1
     description: Production server
   - url: https://demo.magami.id/api/v1
-    description: Staging server
+    description: Demo server
+  - url: http://bihunku.test/api/v1
+    description: Local server
 tags:
   - name: Microsite
     description: Anything related to participant/end-user microsite
@@ -421,6 +423,128 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFoundOrErrorResponse'
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /locations/provinces:
+    get:
+      summary: Get Provinces
+      operationId: get-provinces
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+        - Location
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      properties:
+                        province_id:
+                          type: integer
+                        province_name:
+                          type: string
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /locations/cities/{provinceId}:
+    get:
+      summary: Get Cities
+      operationId: get-cities
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+        - Location
+      security:
+        - apiKey: []
+      parameters:
+        - name: provinceId
+          in: path
+          description: Province ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      properties:
+                        city_id:
+                          type: integer
+                        city_name:
+                          type: string
+        '500':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundOrErrorResponse'
+  /locations/districts/{cityId}:
+    get:
+      summary: Get Districts
+      operationId: get-districts
+      headers:
+        name: Authorization
+        description: Bearer token
+      tags:
+        - Microsite
+        - Location
+      security:
+        - apiKey: []
+      parameters:
+        - name: cityId
+          in: path
+          description: City ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      properties:
+                        district_id:
+                          type: integer
+                        district_name:
+                          type: string
         '500':
           description: Error
           content:
